@@ -1,0 +1,62 @@
+---
+title: "Remigio-Capstone-InSitu"
+author: "R. Remigio"
+date: "June 23, 2016"
+output: html_document
+---
+
+
+```{r declare-your-libraries}
+library(dplyr)
+library(raster)
+library(rhdf5)
+library(rgdal)
+library(neonAOP)
+
+
+```
+
+## Import D17-SOAP Field Data
+
+```{r import-insitu}
+
+## read in file
+insitu.SOAP<-read.csv("/Users/R-Files/Documents/data/NEONDI-2016/NEONdata/D17-California/SOAP/2013/insitu/veg-structure/D17_2013_SOAP_vegStr.csv")
+
+## visualize structure
+str(insitu.SOAP)
+
+#summarize
+summary(insitu.SOAP)
+
+#  selected potential predictors of interest at SOAP 2013
+
+# plotid, taxonid, scientificname, dbh, dbhheight, basalCanopyDiam, Maximum canopy diameter, stemheight
+# canopyform, livingcanopy,  inplotcanopy
+
+# subset dataframe-- make it not dirty
+insitu.SOAP<-subset(insitu.SOAP, select=c(plotid, easting, northing, taxonid, scientificname, dbh, dbhheight, basalcanopydiam, maxcanopydiam, stemheight, canopyform, livingcanopy,  inplotcanopy))
+
+## subset dataframe for cat vars
+SOAP.cat<-subset(insitu.SOAP, select=c(plotid, taxonid, scientificname, canopyform))
+
+## subset categorical variables
+SOAP.cont<- subset(insitu.SOAP, select=c(dbh, dbhheight, basalcanopydiam, maxcanopydiam, stemheight, livingcanopy, inplotcanopy))
+
+## Categorical summaries
+cat<-function(x){
+  summary(x)
+  }
+cat(SOAP.cat)
+
+hist(SOAP.cont)
+hist
+
+```
+
+
+
+```{r}
+
+```
+
