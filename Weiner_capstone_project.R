@@ -13,8 +13,19 @@ outdata <- function(DTM, LAS_file) {
   options(scipen=999)
   
   #Read in LAS file and same named DTM
-  LiDAR_data <- rLiDAR::readLAS(LAS_file)
-  DTM <- raster(DTM)
+  #LiDAR_data <- rLiDAR::readLAS(LAS_file)
+  LiDAR_data <- rLiDAR::readLAS("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000.laz.las")
+  #DTM <- raster(DTM)
+  DTM <- raster("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000_DTM.tif")
+  
+  #Bring in larger rasters
+  canopy_raster <- raster("/Volumes/NO NAME/Tresholded_Projected/canopy/hdr.adf")
+  shrub_raster <- raster("/Volumes/NO NAME/Tresholded_Projected/shrub/hdr.adf")
+  understory_raster <- raster("/Volumes/NO NAME/Tresholded_Projected/understory/hdr.adf")
+
+  #Compare extents
+  plot(canopy_raster)
+  plot(DTM, add = TRUE)
   
   #Get x, y, z values from DTM to match with LiDAR data
   DTM_Values <- cbind(xyFromCell(DTM, 1:length(DTM)), getValues(DTM))
@@ -57,6 +68,7 @@ outdata <- function(DTM, LAS_file) {
   
   #Put data into Voxels
   Voxeled_data <- VoxR::vox(Spatial_with_CorElev)
+  names(Voxeled_data) <- c("x","y","z","num_pts")
   
   #Segment across the landscape
   Voxeled_data$xbin <- cut(Voxeled_data$x, 10, labels = FALSE)
@@ -65,33 +77,44 @@ outdata <- function(DTM, LAS_file) {
   #Test plot
   ggplot(Voxeled_data[sample(1:nrow(Voxeled_data), 20000), ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(ybin ~ xbin)
   
+  #Extract values from raster
+  Voxeled_data$canopy_TH <- extract(canopy_raster, as.matrix(Voxeled_data[, 1:2]))
+  Voxeled_data$shrub_TH <- extract(shrub_raster, as.matrix(Voxeled_data[, 1:2]))
+  Voxeled_data$understory_TH <- extract(understory_raster, as.matrix(Voxeled_data[, 1:2]))
   
+  #Make classifications 
+  Voxeled_data$Classifications <- NA
   
+  #Take out NAs
+  Voxeled_data_no_NA <- Voxeled_data[!is.na(Voxeled_data$canopy_TH), ]
   
+  #Make sums column
+  Voxeled_data_no_NA$sum <- rowSums(Voxeled_data_no_NA[, 7:9])
+  
+  #Identify Vegetation classifications
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$shrub_TH == 1 & Voxeled_data_no_NA$sum == 1] <- "Shrubs"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$canopy_TH == 1 & Voxeled_data_no_NA$sum == 1] <- "Canopy"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$understory_TH == 1 & Voxeled_data_no_NA$sum == 1] <- "Understory"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$understory_TH == 1 & Voxeled_data_no_NA$canopy_TH == 1 & Voxeled_data_no_NA$sum == 2] <- "Understory_and_Canopy"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$shrub_TH == 1 & Voxeled_data_no_NA$canopy_TH == 1 & Voxeled_data_no_NA$sum == 2] <- "Shrubs_and_Canopy"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$shrub_TH == 1 & Voxeled_data_no_NA$understory_TH == 1 & Voxeled_data_no_NA$sum == 2] <- "Shrubs_and_Understory"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$sum == 3] <- "All_3"
+  
+  Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$sum == 0] <- "No_ID"
+  
+  ggplot(Voxeled_data_no_NA[ , ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
+  
+  Voxeled_data_no_NA[sample(1:nrow(Voxeled_data_no_NA), 20000), ] %>%
+    filter(Classifications %in% c("Shrubs", "Understory")) %>%
+    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + 
+    facet_grid(. ~ Classifications)
 }
-
-
-##################
-# WORKFLOW/TO-DO
-#
-# 
-# Note if no DTM, don't use that data point (LiDAR -> NA)
-#
-#
-# Define bounding boxes, so vertical resolution of 1m, horizontal resolution of 10m
-#
-#
-#
-#
-# Decide on binning/voxel method (pixel size and vertical extent)
-# Count returns in each voxel and create profiles for each pixel
-# Cluster profiles (using k-means?)
-# Distribute across landscape
-#
-#
-#
-#
-
 
 
 
