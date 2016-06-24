@@ -7,6 +7,10 @@ outdata <- function(DTM, LAS_file) {
   library(raster)
   library(plyr)
   library(dplyr)
+  library(VoxR)
+  
+  #Turn off scientific notation
+  options(scipen=999)
   
   #Read in LAS file and same named DTM
   LiDAR_data <- rLiDAR::readLAS(LAS_file)
@@ -39,20 +43,27 @@ outdata <- function(DTM, LAS_file) {
   
   #Get corrected Z value
   Corrected_Elev <- LiDAR_and_DTM_Data[,3] - LiDAR_and_DTM_Data[,6]
+  Corrected_Elev <- as.data.frame(Corrected_Elev)
   
   #Spatial Data
   X_Values <- as.data.frame(LiDAR_and_DTM_Data[,1])
   names(X_Values) <- "X_Values"
+  
   Y_Values <- as.data.frame(LiDAR_and_DTM_Data[,2])
   names(Y_Values) <- "Y_Values"
-  Spatial_with_CorElev <- cbind(X_Values, Y_Values, as.integer(Corrected_Elev[,1]))
+  
+  Spatial_with_CorElev <- cbind(X_Values, Y_Values, (Corrected_Elev[,1]))
   names(Spatial_with_CorElev) <- cbind("X","Y","Corrected_Elev")
   
+  #Put data into Voxels
+  Voxeled_data <- VoxR::vox(Spatial_with_CorElev)
   
+  #Segment across the landscape
+  Voxeled_data$xbin <- cut(Voxeled_data$x, 10, labels = FALSE)
+  Voxeled_data$ybin <- cut(Voxeled_data$y, 10, labels = FALSE)
   
-  
-  
-
+  #Test plot
+  ggplot(Voxeled_data[sample(1:nrow(Voxeled_data), 20000), ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(ybin ~ xbin)
   
   
   
@@ -63,12 +74,15 @@ outdata <- function(DTM, LAS_file) {
 ##################
 # WORKFLOW/TO-DO
 #
-# Use IF statement to round LiDAR values to nearest .5 value to match DTM data
-#
-#
-# Subtract DTM from LiDAR data
+# 
 # Note if no DTM, don't use that data point (LiDAR -> NA)
-# Have to do some rounding and/or flooring to match LiDAR points to DTM tiles
+#
+#
+# Define bounding boxes, so vertical resolution of 1m, horizontal resolution of 10m
+#
+#
+#
+#
 # Decide on binning/voxel method (pixel size and vertical extent)
 # Count returns in each voxel and create profiles for each pixel
 # Cluster profiles (using k-means?)
