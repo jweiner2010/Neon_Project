@@ -28,6 +28,7 @@ Canopy_Structure <- function(DTM, LAS_file) {
   plot(canopy_raster)
   plot(DTM, add = TRUE)
   
+  
   #Get x, y, z values from DTM to match with LiDAR data
   DTM_Values <- cbind(xyFromCell(DTM, 1:length(DTM)), getValues(DTM))
   
@@ -127,7 +128,6 @@ Canopy_Structure <- function(DTM, LAS_file) {
   Voxeled_data_no_NA[ , ] %>%
     filter(Classifications %in% c("Canopy", "Shrubs_and_Canopy", "Understory_and_Canopy")) %>%
     ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications) + ggtitle("296-4101 Canopy Structures")
-  
   
 }
 
