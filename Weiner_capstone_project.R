@@ -8,6 +8,7 @@ Canopy_Structure <- function(DTM, LAS_file) {
   library(plyr)
   library(dplyr)
   library(VoxR)
+  library(ggplot2)
   
   #Turn off scientific notation
   options(scipen=999)
@@ -105,12 +106,31 @@ Canopy_Structure <- function(DTM, LAS_file) {
   Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$sum == 0] <- "No_ID"
   
   #Plots of structure
-  ggplot(Voxeled_data_no_NA[ , ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
+  #ggplot(Voxeled_data_no_NA[ , ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
   
-  #Voxeled_data_no_NA[ , ] %>%
- #   filter(Classifications %in% c("Shrubs", "Understory")) %>%
- #   ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + 
-  #  facet_grid(. ~ Classifications)
+  Voxeled_data_no_NA[ , ] %>%
+    filter(Classifications %in% c("All_3")) %>%
+    all3_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+  
+  Voxeled_data_no_NA[ , ] %>%
+    filter(Classifications %in% c("Shrubs", "Understory", "Canopy")) %>%
+    uniques_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+  
+  Voxeled_data_no_NA[ , ] %>%
+    filter(Classifications %in% c("Shrubs", "Shrubs_and_Canopy", "Shrubs_and_Understory")) %>%
+    shrubs_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+  
+  Voxeled_data_no_NA[ , ] %>%
+    filter(Classifications %in% c("Understory", "Shrubs_and_Understory", "Understory_and_Canopy")) %>%
+    understory_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+  
+  Voxeled_data_no_NA[ , ] %>%
+    filter(Classifications %in% c("Canopy", "Shrubs_and_Canopy", "Understory_and_Canopy")) %>%
+    canopy_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+  
+  Voxeled_data_no_NA[ , ] %>%
+    filter(Classifications %in% c("No_ID", "All_3")) %>%
+    noID_plot <- ggplot(aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
   
 }
 
