@@ -2,6 +2,8 @@
 
 File_Retrieval <- function(LAS_folder, DTM_folder) {
 
+  source("Weiner_capstone_project.R")
+  
   las_files <- list.files(LAS_folder)
   DTM_files <- list.files(DTM_folder)
 

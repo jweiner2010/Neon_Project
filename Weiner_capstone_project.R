@@ -14,10 +14,10 @@ Canopy_Structure <- function(DTM, LAS_file) {
   options(scipen=999)
   
   #Read in LAS file and same named DTM
-  LiDAR_data <- rLiDAR::readLAS(LAS_file)
-  #LiDAR_data <- rLiDAR::readLAS("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000.laz.las")
-  DTM <- raster(DTM)
-  #DTM <- raster("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000_DTM.tif")
+  #LiDAR_data <- rLiDAR::readLAS(LAS_file)
+  LiDAR_data <- rLiDAR::readLAS("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/file_for_subset/las_files/2013_SOAP_1_296000_4101000.laz.las")
+  #DTM <- raster(DTM)
+  DTM <- raster("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/file_for_subset/DTM_files/2013_SOAP_1_296000_4101000_DTM.tif")
   
   #Bring in larger rasters
   canopy_raster <- raster("/Volumes/NO NAME/Tresholded_Projected/canopy/hdr.adf")
@@ -71,9 +71,6 @@ Canopy_Structure <- function(DTM, LAS_file) {
   Voxeled_data$xbin <- cut(Voxeled_data$x, 10, labels = FALSE)
   Voxeled_data$ybin <- cut(Voxeled_data$y, 10, labels = FALSE)
   
-  #Test plot
-  ggplot(Voxeled_data[sample(1:nrow(Voxeled_data), 20000), ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(ybin ~ xbin)
-  
   #Extract values from rasters
   Voxeled_data$canopy_TH <- extract(canopy_raster, as.matrix(Voxeled_data[, 1:2]))
   Voxeled_data$shrub_TH <- extract(shrub_raster, as.matrix(Voxeled_data[, 1:2]))
@@ -84,6 +81,9 @@ Canopy_Structure <- function(DTM, LAS_file) {
   
   #Take out NAs
   Voxeled_data_no_NA <- Voxeled_data[!is.na(Voxeled_data$canopy_TH), ]
+  
+  #Test plot
+  ggplot(Voxeled_data[ , ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(ybin ~ xbin) + ggtitle("296-4101 Distributed Structures")
   
   #Make sums column
   Voxeled_data_no_NA$sum <- rowSums(Voxeled_data_no_NA[, 7:9])
@@ -109,28 +109,25 @@ Canopy_Structure <- function(DTM, LAS_file) {
   #ggplot(Voxeled_data_no_NA[ , ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
   
   Voxeled_data_no_NA[ , ] %>%
-    filter(Classifications %in% c("All_3")) %>%
-    all3_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+    filter(Classifications %in% c("All_3", "No_ID")) %>%
+    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)+ ggtitle("296-4101 Classes All_3 and No_ID Structures")
   
   Voxeled_data_no_NA[ , ] %>%
     filter(Classifications %in% c("Shrubs", "Understory", "Canopy")) %>%
-    uniques_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)+ ggtitle("296-4101 Unique Structures")
   
   Voxeled_data_no_NA[ , ] %>%
     filter(Classifications %in% c("Shrubs", "Shrubs_and_Canopy", "Shrubs_and_Understory")) %>%
-    shrubs_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)+ ggtitle("296-4101 Shrubs Structures")
   
   Voxeled_data_no_NA[ , ] %>%
     filter(Classifications %in% c("Understory", "Shrubs_and_Understory", "Understory_and_Canopy")) %>%
-    understory_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)+ ggtitle("296-4101 Understory Structures")
   
   Voxeled_data_no_NA[ , ] %>%
     filter(Classifications %in% c("Canopy", "Shrubs_and_Canopy", "Understory_and_Canopy")) %>%
-    canopy_plot <- ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications)
+    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + facet_grid(. ~ Classifications) + ggtitle("296-4101 Canopy Structures")
   
-  Voxeled_data_no_NA[ , ] %>%
-    filter(Classifications %in% c("No_ID", "All_3")) %>%
-    noID_plot <- ggplot(aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
   
 }
 
