@@ -1,6 +1,6 @@
 #### Capstone Project: Canopy Sturucture with LiDAR
 
-outdata <- function(DTM, LAS_file) {
+Canopy_Structure <- function(DTM, LAS_file) {
   
   #Import Libraries
   library(rLiDAR)
@@ -13,10 +13,10 @@ outdata <- function(DTM, LAS_file) {
   options(scipen=999)
   
   #Read in LAS file and same named DTM
-  #LiDAR_data <- rLiDAR::readLAS(LAS_file)
-  LiDAR_data <- rLiDAR::readLAS("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000.laz.las")
-  #DTM <- raster(DTM)
-  DTM <- raster("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000_DTM.tif")
+  LiDAR_data <- rLiDAR::readLAS(LAS_file)
+  #LiDAR_data <- rLiDAR::readLAS("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000.laz.las")
+  DTM <- raster(DTM)
+  #DTM <- raster("/Volumes/AOP-NEON1-4/D17/SOAP/2013/SOAP_L1/SOAP_Lidar/Classified_point_cloud/las_files/2013_SOAP_1_298000_4100000_DTM.tif")
   
   #Bring in larger rasters
   canopy_raster <- raster("/Volumes/NO NAME/Tresholded_Projected/canopy/hdr.adf")
@@ -44,10 +44,6 @@ outdata <- function(DTM, LAS_file) {
   
   DTM_Values[,1] <- floor(DTM_Values[,1])
   DTM_Values[,2] <- floor(DTM_Values[,2])
-  
-  #rand_x <- sample(1:nrow(LiDAR_data), 5000)
-    
-  #points(x = LiDAR_data[rand_x, 1], y = LiDAR_data[rand_x, 2], add = TRUE)
   
   #Join datasets together
   LiDAR_and_DTM_Data <- join(LiDAR_data, DTM_Values, by = c("X","Y")) 
@@ -77,7 +73,7 @@ outdata <- function(DTM, LAS_file) {
   #Test plot
   ggplot(Voxeled_data[sample(1:nrow(Voxeled_data), 20000), ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(ybin ~ xbin)
   
-  #Extract values from raster
+  #Extract values from rasters
   Voxeled_data$canopy_TH <- extract(canopy_raster, as.matrix(Voxeled_data[, 1:2]))
   Voxeled_data$shrub_TH <- extract(shrub_raster, as.matrix(Voxeled_data[, 1:2]))
   Voxeled_data$understory_TH <- extract(understory_raster, as.matrix(Voxeled_data[, 1:2]))
@@ -108,12 +104,14 @@ outdata <- function(DTM, LAS_file) {
   
   Voxeled_data_no_NA$Classifications[Voxeled_data_no_NA$sum == 0] <- "No_ID"
   
+  #Plots of structure
   ggplot(Voxeled_data_no_NA[ , ], aes(x = num_pts, y = z)) + geom_bin2d() + facet_grid(. ~ Classifications)
   
-  Voxeled_data_no_NA[sample(1:nrow(Voxeled_data_no_NA), 20000), ] %>%
-    filter(Classifications %in% c("Shrubs", "Understory")) %>%
-    ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + 
-    facet_grid(. ~ Classifications)
+  #Voxeled_data_no_NA[ , ] %>%
+ #   filter(Classifications %in% c("Shrubs", "Understory")) %>%
+ #   ggplot(aes(x = num_pts, y = z)) +   geom_bin2d() + 
+  #  facet_grid(. ~ Classifications)
+  
 }
 
 
